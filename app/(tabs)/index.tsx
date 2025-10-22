@@ -1,17 +1,19 @@
 import { StyleSheet, Text, View, ScrollView, Dimensions } from 'react-native';
-import { TrendingUp, DollarSign, Calendar, Star, Package } from 'lucide-react-native';
+import { TrendingUp, IndianRupee, Calendar, Star, Package } from 'lucide-react-native';
 import { useVendor } from '@/contexts/VendorContext';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
 
 export default function DashboardScreen() {
   const { metrics, pendingBookings, activeBookings } = useVendor();
+  const insets = useSafeAreaInsets();
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <Text style={styles.headerTitle}>Dashboard</Text>
         <Text style={styles.headerSubtitle}>Welcome back! Here&apos;s your overview</Text>
       </View>
@@ -19,9 +21,9 @@ export default function DashboardScreen() {
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
           <View style={styles.statIconContainer}>
-            <DollarSign size={20} color="#10B981" strokeWidth={2.5} />
+            <IndianRupee size={20} color="#10B981" strokeWidth={2.5} />
           </View>
-          <Text style={styles.statValue}>${metrics.totalRevenue.toLocaleString()}</Text>
+          <Text style={styles.statValue}>₹{metrics.totalRevenue.toLocaleString('en-IN')}</Text>
           <Text style={styles.statLabel}>Total Revenue</Text>
           <View style={styles.statTrend}>
             <TrendingUp size={12} color="#10B981" />

@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { Clock, Phone, CheckCircle, XCircle, AlertCircle } from 'lucide-react-native';
 import { useVendor } from '@/contexts/VendorContext';
 import { Booking } from '@/types/vendor';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function BookingsScreen() {
   const { bookings, updateBookingStatus } = useVendor();
+  const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<'all' | Booking['status']>('all');
 
   const filteredBookings = filter === 'all' 
@@ -53,7 +55,7 @@ export default function BookingsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <Text style={styles.headerTitle}>Campaigns</Text>
         <Text style={styles.headerSubtitle}>{bookings.length} total campaigns</Text>
       </View>
@@ -111,7 +113,7 @@ export default function BookingsScreen() {
                   </Text>
                 </View>
               </View>
-              <Text style={styles.amount}>${booking.amount}</Text>
+              <Text style={styles.amount}>₹{booking.amount.toLocaleString('en-IN')}</Text>
             </View>
 
             <View style={styles.divider} />

@@ -1,10 +1,14 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Switch } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Switch, Alert } from 'react-native';
 import { useState } from 'react';
 import { Building2, Mail, Phone, MapPin, Info, CheckCircle, Bell, Settings, LogOut } from 'lucide-react-native';
 import { useVendor } from '@/contexts/VendorContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   const { profile, updateProfile } = useVendor();
+  const { logout } = useAuth();
+  const insets = useSafeAreaInsets();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(profile.name);
   const [email, setEmail] = useState(profile.email);
@@ -28,9 +32,20 @@ export default function ProfileScreen() {
     setIsEditing(false);
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Log Out', style: 'destructive', onPress: logout },
+      ]
+    );
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.headerTitle}>Profile</Text>
@@ -216,7 +231,7 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.section}>
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <LogOut size={20} color="#EF4444" />
           <Text style={styles.logoutButtonText}>Log Out</Text>
         </TouchableOpacity>

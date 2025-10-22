@@ -8,7 +8,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: '#3B82F6',
         tabBarInactiveTintColor: '#9CA3AF',
-        headerShown: true,
+        headerShown: false,
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
@@ -36,7 +36,6 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Dashboard",
-          headerShown: false,
           tabBarIcon: ({ color }) => <LayoutDashboard size={24} color={color} />,
         }}
       />
@@ -44,7 +43,6 @@ export default function TabLayout() {
         name="services"
         options={{
           title: "Services",
-          headerShown: false,
           tabBarIcon: ({ color }) => <Package size={24} color={color} />,
         }}
       />
@@ -52,7 +50,6 @@ export default function TabLayout() {
         name="bookings"
         options={{
           title: "Bookings",
-          headerShown: false,
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
         }}
       />
@@ -60,7 +57,6 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
-          headerShown: false,
           tabBarIcon: ({ color }) => <User size={24} color={color} />,
         }}
       />

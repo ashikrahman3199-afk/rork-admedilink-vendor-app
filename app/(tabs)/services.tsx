@@ -4,9 +4,11 @@ import { Plus, Search, Edit2, Trash2, X } from 'lucide-react-native';
 import { useVendor } from '@/contexts/VendorContext';
 import { Service } from '@/types/vendor';
 import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ServicesScreen() {
   const { services, addService, updateService, deleteService } = useVendor();
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -33,7 +35,7 @@ export default function ServicesScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <Text style={styles.headerTitle}>Ad Mediums</Text>
         <TouchableOpacity 
           style={styles.addButton}
@@ -93,7 +95,7 @@ export default function ServicesScreen() {
               
               <View style={styles.serviceFooter}>
                 <View style={styles.serviceDetail}>
-                  <Text style={styles.servicePrice}>${service.price}</Text>
+                  <Text style={styles.servicePrice}>₹{service.price.toLocaleString('en-IN')}</Text>
                   <Text style={styles.serviceDuration}>{service.duration} days</Text>
                 </View>
                 <View style={[
@@ -228,7 +230,7 @@ function ServiceFormModal({ visible, service, onClose, onSave }: ServiceFormModa
 
           <View style={styles.formRow}>
             <View style={[styles.formGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Price ($) *</Text>
+              <Text style={styles.label}>Price (₹) *</Text>
               <TextInput
                 style={styles.input}
                 value={price}
