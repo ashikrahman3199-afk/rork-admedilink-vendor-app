@@ -117,26 +117,21 @@ export default function LoginScreen() {
   };
 
   return (
-    <LinearGradient colors={['#3B82F6', '#8B5CF6']} style={styles.container}>
+    <LinearGradient colors={['#115E59', '#0F766E']} style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <ScrollView
-          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 40 }]}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 60 }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <View style={styles.iconWrapper}>
-              <TrendingUp size={48} color="#FFFFFF" strokeWidth={2.5} />
-            </View>
-            <Text style={styles.title}>Ad-Run Vendor</Text>
-            <Text style={styles.subtitle}>
-              {step === 'mobile' && 'Welcome! Login to manage your campaigns'}
-              {step === 'otp' && 'Enter the OTP sent to your mobile'}
-              {step === 'registration' && 'Complete your vendor profile'}
+            <Text style={styles.title}>
+              Altd<Text style={{ color: '#2DD4BF' }}>.</Text>
             </Text>
+            <Text style={styles.subtitle}>The Future of Ad Booking</Text>
           </View>
 
           <View style={styles.card}>
@@ -342,14 +337,14 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   button: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#0F766E',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
   },
   buttonDisabled: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: '#99F6E4',
   },
   buttonText: {
     color: '#FFFFFF',
@@ -361,7 +356,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   linkText: {
-    color: '#3B82F6',
+    color: '#0F766E',
     fontSize: 14,
     fontWeight: '600' as const,
   },

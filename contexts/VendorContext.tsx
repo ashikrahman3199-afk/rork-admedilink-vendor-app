@@ -30,6 +30,10 @@ export const [VendorProvider, useVendor] = createContextHook(() => {
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b));
   }, []);
 
+  const updateBooking = useCallback((id: string, updates: Partial<Booking>) => {
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, ...updates } : b));
+  }, []);
+
   const updateProfile = useCallback((updates: Partial<VendorProfile>) => {
     setProfile(prev => ({ ...prev, ...updates }));
   }, []);
@@ -44,11 +48,11 @@ export const [VendorProvider, useVendor] = createContextHook(() => {
       totalRevenue,
       totalBookings: bookings.length,
       averageRating: avgRating,
-      activeServices: services.filter(s => s.availability !== 'unavailable').length,
+      activeServices: services.length,
     };
   }, [services, bookings]);
 
-  const pendingBookings = useMemo(() => 
+  const pendingBookings = useMemo(() =>
     bookings.filter(b => b.status === 'pending').length,
     [bookings]
   );
@@ -68,6 +72,7 @@ export const [VendorProvider, useVendor] = createContextHook(() => {
     updateService,
     deleteService,
     updateBookingStatus,
+    updateBooking,
     updateProfile,
   }), [services, bookings, profile, metrics, pendingBookings, activeBookings, addService, updateService, deleteService, updateBookingStatus, updateProfile]);
 });

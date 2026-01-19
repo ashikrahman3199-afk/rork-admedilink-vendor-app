@@ -18,78 +18,108 @@ export const mockServices: Service[] = [
   {
     id: '1',
     name: 'Times Square Digital Billboard',
-    category: 'digital',
+    category: 'LED Billboards',
     description: 'Premium digital billboard in Times Square with 4K LED display, 15-second rotation',
-    price: 412500,
-    duration: 30,
-    availability: 'available',
     rating: 4.9,
     totalBookings: 342,
     image: 'https://images.unsplash.com/photo-1534536281715-e28d76689b4d?w=400',
+    options: [
+      {
+        id: 'opt1',
+        name: 'Hoardings',
+        price: 412500,
+        duration: 30,
+        availability: 'available',
+        photos: ['https://images.unsplash.com/photo-1534536281715-e28d76689b4d?w=400'],
+      }
+    ]
   },
   {
     id: '2',
     name: 'Highway Billboard - Route 95',
-    category: 'billboard',
+    category: 'Billboards',
     description: 'Large format static billboard on I-95, high traffic area with 250k daily impressions',
-    price: 288750,
-    duration: 30,
-    availability: 'available',
     rating: 4.8,
     totalBookings: 567,
     image: 'https://images.unsplash.com/photo-1551677117-8b3e02c944c0?w=400',
+    options: [
+      {
+        id: 'opt2',
+        name: 'Hoarding',
+        price: 288750,
+        duration: 30,
+        availability: 'available',
+      }
+    ]
   },
   {
     id: '3',
     name: 'Metro Station Displays',
-    category: 'transit',
+    category: 'Metro & Trains',
     description: 'Digital displays across 5 major metro stations in downtown area',
-    price: 231000,
-    duration: 30,
-    availability: 'limited',
     rating: 4.7,
     totalBookings: 234,
     image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400',
+    options: []
   },
   {
     id: '4',
-    name: 'Magazine Full Page Ad',
-    category: 'print',
-    description: 'Full-page advertisement in premium lifestyle magazine, 500k circulation',
-    price: 346500,
-    duration: 30,
-    availability: 'available',
+    name: 'Morning News Page 3',
+    category: 'Newspaper',
+    description: 'Quarter-page advertisement in premium daily newspaper, 500k circulation',
     rating: 4.6,
     totalBookings: 189,
     image: 'https://images.unsplash.com/photo-1586769852836-bc069f19e1b6?w=400',
+    options: [
+      {
+        id: 'opt3',
+        name: 'Quarter page',
+        price: 346500,
+        duration: 1,
+        availability: 'available',
+      }
+    ]
   },
   {
     id: '5',
-    name: 'Stadium Event Sponsorship',
-    category: 'event',
-    description: 'Premium sponsorship package with LED board placement and brand activation',
-    price: 701250,
-    duration: 1,
-    availability: 'available',
+    name: 'City FM Prime Time',
+    category: 'Radio',
+    description: '30-second spots during morning and evening rush hours',
     rating: 4.9,
     totalBookings: 445,
-    image: 'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=400',
+    image: 'https://images.unsplash.com/photo-1598550476439-6847785fcea6?w=400',
+    options: [
+      {
+        id: 'opt4',
+        name: 'Jingle',
+        price: 150000,
+        duration: 30,
+        availability: 'available',
+      }
+    ]
   },
   {
     id: '6',
     name: 'Bus Wrap Advertising',
-    category: 'transit',
+    category: 'Buses',
     description: 'Full bus wrap advertisement on city bus routes with 150k daily reach',
-    price: 264000,
-    duration: 30,
-    availability: 'available',
     rating: 4.7,
     totalBookings: 298,
     image: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=400',
+    options: [
+      {
+        id: 'opt5',
+        name: 'Full bus exterior',
+        price: 264000,
+        duration: 30,
+        availability: 'available',
+      }
+    ]
   },
 ];
 
 export const mockBookings: Booking[] = [
+
   {
     id: '1',
     serviceId: '1',
@@ -100,6 +130,14 @@ export const mockBookings: Booking[] = [
     endDate: '2025-11-30',
     status: 'pending',
     amount: 412500,
+    campaignObjective: 'Launch of new flagship smartphone',
+    designPreference: 'High-tech, futuristic, neon colors',
+    clientImages: [
+      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400',
+      'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=400'
+    ],
+    progress: 0,
+    proofOfExecution: []
   },
   {
     id: '2',
@@ -111,6 +149,13 @@ export const mockBookings: Booking[] = [
     endDate: '2025-12-14',
     status: 'confirmed',
     amount: 288750,
+    campaignObjective: 'Year-end clearance sale',
+    designPreference: 'Bold red text on white background, high visibility',
+    clientImages: [
+      'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400'
+    ],
+    progress: 0,
+    proofOfExecution: []
   },
   {
     id: '3',
@@ -122,6 +167,14 @@ export const mockBookings: Booking[] = [
     endDate: '2025-12-31',
     status: 'confirmed',
     amount: 231000,
+    campaignObjective: 'Winter collection promotion',
+    designPreference: 'Elegant, minimalist, winter theme',
+    clientImages: [
+      'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400',
+      'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?w=400'
+    ],
+    progress: 0,
+    proofOfExecution: []
   },
   {
     id: '4',
@@ -133,6 +186,13 @@ export const mockBookings: Booking[] = [
     endDate: '2025-10-31',
     status: 'completed',
     amount: 412500,
+    campaignObjective: 'Global brand awareness campaign',
+    designPreference: 'Corporate colors, professional look',
+    clientImages: [],
+    progress: 100,
+    proofOfExecution: [
+      'https://images.unsplash.com/photo-1534536281715-e28d76689b4d?w=400'
+    ]
   },
   {
     id: '5',
@@ -144,6 +204,13 @@ export const mockBookings: Booking[] = [
     endDate: '2025-12-19',
     status: 'pending',
     amount: 346500,
+    campaignObjective: 'Introducing new luxury watch series',
+    designPreference: 'Black and gold, sophisticated',
+    clientImages: [
+      'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=400'
+    ],
+    progress: 0,
+    proofOfExecution: []
   },
   {
     id: '6',
@@ -155,6 +222,16 @@ export const mockBookings: Booking[] = [
     endDate: '2025-10-15',
     status: 'active',
     amount: 701250,
+    campaignObjective: 'Sponsorship for the national cup final',
+    designPreference: 'Energetic, dynamic, sporty',
+    clientImages: [
+      'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400',
+      'https://images.unsplash.com/photo-1522770179533-24471fcdba45?w=400'
+    ],
+    progress: 45,
+    proofOfExecution: [
+      'https://images.unsplash.com/photo-1551677117-8b3e02c944c0?w=400'
+    ]
   },
 ];
 

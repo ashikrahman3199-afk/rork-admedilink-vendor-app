@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View, ScrollView, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 import { TrendingUp, IndianRupee, Calendar, Star, Package } from 'lucide-react-native';
 import { useVendor } from '@/contexts/VendorContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
@@ -10,6 +11,7 @@ const CARD_WIDTH = (width - 48) / 2;
 export default function DashboardScreen() {
   const { metrics, pendingBookings, activeBookings } = useVendor();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -20,13 +22,13 @@ export default function DashboardScreen() {
 
       <View style={styles.statsGrid}>
         <View style={styles.statCard}>
-          <View style={styles.statIconContainer}>
-            <IndianRupee size={20} color="#10B981" strokeWidth={2.5} />
+          <View style={[styles.statIconContainer, { backgroundColor: '#DCFCE7' }]}>
+            <IndianRupee size={22} color="#10B981" strokeWidth={2.5} />
           </View>
           <Text style={styles.statValue}>₹{metrics.totalRevenue.toLocaleString('en-IN')}</Text>
           <Text style={styles.statLabel}>Total Revenue</Text>
           <View style={styles.statTrend}>
-            <TrendingUp size={12} color="#10B981" />
+            <TrendingUp size={14} color="#10B981" />
             <Text style={[styles.statTrendText, { color: '#10B981' }]}>
               +{metrics.revenueGrowth}%
             </Text>
@@ -35,12 +37,12 @@ export default function DashboardScreen() {
 
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, { backgroundColor: '#DBEAFE' }]}>
-            <Calendar size={20} color="#3B82F6" strokeWidth={2.5} />
+            <Calendar size={22} color="#3B82F6" strokeWidth={2.5} />
           </View>
           <Text style={styles.statValue}>{metrics.totalBookings}</Text>
           <Text style={styles.statLabel}>Total Bookings</Text>
           <View style={styles.statTrend}>
-            <TrendingUp size={12} color="#10B981" />
+            <TrendingUp size={14} color="#10B981" />
             <Text style={[styles.statTrendText, { color: '#10B981' }]}>
               +{metrics.bookingsGrowth}%
             </Text>
@@ -49,13 +51,13 @@ export default function DashboardScreen() {
 
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, { backgroundColor: '#FEF3C7' }]}>
-            <Star size={20} color="#F59E0B" strokeWidth={2.5} />
+            <Star size={22} color="#F59E0B" strokeWidth={2.5} />
           </View>
           <Text style={styles.statValue}>{metrics.averageRating.toFixed(1)}</Text>
           <Text style={styles.statLabel}>Avg. Rating</Text>
           <View style={styles.statTrend}>
-            <Star size={12} color="#F59E0B" fill="#F59E0B" />
-            <Text style={[styles.statTrendText, { color: '#6B7280' }]}>
+            <Star size={14} color="#F59E0B" fill="#F59E0B" />
+            <Text style={[styles.statTrendText, { color: '#F59E0B', marginLeft: 4 }]}>
               Excellent
             </Text>
           </View>
@@ -63,7 +65,7 @@ export default function DashboardScreen() {
 
         <View style={styles.statCard}>
           <View style={[styles.statIconContainer, { backgroundColor: '#E0E7FF' }]}>
-            <Package size={20} color="#6366F1" strokeWidth={2.5} />
+            <Package size={22} color="#6366F1" strokeWidth={2.5} />
           </View>
           <Text style={styles.statValue}>{metrics.activeServices}</Text>
           <Text style={styles.statLabel}>Active Mediums</Text>
@@ -77,9 +79,14 @@ export default function DashboardScreen() {
 
       <View style={styles.alertsSection}>
         {pendingBookings > 0 && (
-          <View style={styles.alertCard}>
-            <View style={styles.alertIconContainer}>
-              <Calendar size={20} color="#F59E0B" />
+          <TouchableOpacity
+            style={[styles.alertCard, { backgroundColor: '#FEFCE8' }]}
+            onPress={() => router.push({ pathname: '/(tabs)/bookings', params: { status: 'pending' } })}
+            activeOpacity={0.9}
+          >
+            <View style={[styles.alertIconContainer, { backgroundColor: '#F59E0B' }]}>
+              <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: '#F59E0B', opacity: 0.2, position: 'absolute' }} />
+              <Calendar size={20} color="#FFF" />
             </View>
             <View style={styles.alertContent}>
               <Text style={styles.alertTitle}>Pending Bookings</Text>
@@ -87,13 +94,18 @@ export default function DashboardScreen() {
                 You have {pendingBookings} campaign{pendingBookings > 1 ? 's' : ''} waiting for confirmation
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
-        
+
         {activeBookings.length > 0 && (
-          <View style={[styles.alertCard, { backgroundColor: '#DBEAFE', borderColor: '#3B82F6' }]}>
+          <TouchableOpacity
+            style={[styles.alertCard, { backgroundColor: '#EFF6FF' }]}
+            onPress={() => router.push({ pathname: '/(tabs)/bookings', params: { status: 'active' } })}
+            activeOpacity={0.9}
+          >
             <View style={[styles.alertIconContainer, { backgroundColor: '#3B82F6' }]}>
-              <Calendar size={20} color="#FFFFFF" />
+              <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: '#3B82F6', opacity: 0.2, position: 'absolute' }} />
+              <Calendar size={20} color="#FFF" />
             </View>
             <View style={styles.alertContent}>
               <Text style={styles.alertTitle}>Active Campaigns</Text>
@@ -101,7 +113,7 @@ export default function DashboardScreen() {
                 {activeBookings.length} campaign{activeBookings.length > 1 ? 's are' : ' is'} currently running
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
         )}
       </View>
 
@@ -112,7 +124,7 @@ export default function DashboardScreen() {
             {metrics.monthlyRevenue.map((data, index) => {
               const maxRevenue = Math.max(...metrics.monthlyRevenue.map(d => d.amount));
               const heightPercentage = (data.amount / maxRevenue) * 100;
-              
+
               return (
                 <View key={data.month} style={styles.barContainer}>
                   <View style={styles.barWrapper}>
@@ -142,11 +154,11 @@ export default function DashboardScreen() {
                 <Text style={styles.topServiceBookings}>{service.bookings} bookings</Text>
               </View>
               <View style={styles.topServiceBar}>
-                <View 
+                <View
                   style={[
                     styles.topServiceBarFill,
                     { width: `${(service.bookings / metrics.topServices[0].bookings) * 100}%` }
-                  ]} 
+                  ]}
                 />
               </View>
             </View>
@@ -231,20 +243,17 @@ const styles = StyleSheet.create({
   },
   alertCard: {
     flexDirection: 'row',
-    backgroundColor: '#FEF3C7',
-    borderRadius: 12,
-    padding: 16,
-    borderLeftWidth: 4,
-    borderColor: '#F59E0B',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
   },
   alertIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#F59E0B',
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   alertContent: {
     flex: 1,

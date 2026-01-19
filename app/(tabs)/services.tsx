@@ -1,14 +1,17 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 import { Plus, Search, Edit2, Trash2, X } from 'lucide-react-native';
 import { useVendor } from '@/contexts/VendorContext';
 import { Service } from '@/types/vendor';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SERVICE_CATEGORIES, SERVICE_FIELDS } from '@/constants/serviceFields';
 
 export default function ServicesScreen() {
   const { services, addService, updateService, deleteService } = useVendor();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -24,8 +27,8 @@ export default function ServicesScreen() {
       `Are you sure you want to delete "${service.name}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
+        {
+          text: 'Delete',
           style: 'destructive',
           onPress: () => deleteService(service.id)
         },
@@ -37,7 +40,7 @@ export default function ServicesScreen() {
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <Text style={styles.headerTitle}>Ad Mediums</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.addButton}
           onPress={() => setShowAddModal(true)}
         >
@@ -65,7 +68,10 @@ export default function ServicesScreen() {
               style={styles.serviceImage}
               contentFit="cover"
             />
-            <View style={styles.serviceInfo}>
+            <TouchableOpacity
+              style={styles.serviceInfo}
+              onPress={() => router.push(`/service/${service.id}`)}
+            >
               <View style={styles.serviceHeader}>
                 <View style={styles.serviceHeaderLeft}>
                   <Text style={styles.serviceName}>{service.name}</Text>
@@ -74,13 +80,13 @@ export default function ServicesScreen() {
                   </View>
                 </View>
                 <View style={styles.serviceActions}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.actionButton}
                     onPress={() => setEditingService(service)}
                   >
                     <Edit2 size={18} color="#3B82F6" />
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.actionButton}
                     onPress={() => handleDeleteService(service)}
                   >
@@ -88,32 +94,16 @@ export default function ServicesScreen() {
                   </TouchableOpacity>
                 </View>
               </View>
-              
+
               <Text style={styles.serviceDescription} numberOfLines={2}>
                 {service.description}
               </Text>
-              
-              <View style={styles.serviceFooter}>
-                <View style={styles.serviceDetail}>
-                  <Text style={styles.servicePrice}>₹{service.price.toLocaleString('en-IN')}</Text>
-                  <Text style={styles.serviceDuration}>{service.duration} days</Text>
-                </View>
-                <View style={[
-                  styles.availabilityBadge,
-                  { backgroundColor: service.availability === 'available' ? '#D1FAE5' : service.availability === 'limited' ? '#FEF3C7' : '#FEE2E2' }
-                ]}>
-                  <Text style={[
-                    styles.availabilityText,
-                    { color: service.availability === 'available' ? '#065F46' : service.availability === 'limited' ? '#92400E' : '#991B1B' }
-                  ]}>
-                    {service.availability}
-                  </Text>
-                </View>
-              </View>
-            </View>
+
+
+            </TouchableOpacity>
           </View>
         ))}
-        
+
         {filteredServices.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>No ad mediums found</Text>
@@ -153,14 +143,12 @@ interface ServiceFormModalProps {
 
 function ServiceFormModal({ visible, service, onClose, onSave }: ServiceFormModalProps) {
   const [name, setName] = useState(service?.name || '');
-  const [category, setCategory] = useState<Service['category']>(service?.category || 'billboard');
+  const [category, setCategory] = useState<Service['category']>(service?.category || SERVICE_CATEGORIES.BILLBOARD);
   const [description, setDescription] = useState(service?.description || '');
-  const [price, setPrice] = useState(service?.price.toString() || '');
-  const [duration, setDuration] = useState(service?.duration.toString() || '');
-  const [availability, setAvailability] = useState<Service['availability']>(service?.availability || 'available');
+  const [details, setDetails] = useState<Record<string, any>>(service?.details || {});
 
   const handleSave = () => {
-    if (!name || !description || !price || !duration) {
+    if (!name || !description) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
@@ -169,9 +157,7 @@ function ServiceFormModal({ visible, service, onClose, onSave }: ServiceFormModa
       name,
       category,
       description,
-      price: parseFloat(price),
-      duration: parseInt(duration),
-      availability,
+      details,
       image: service?.image || 'https://images.unsplash.com/photo-1551677117-8b3e02c944c0?w=400',
     });
   };
@@ -200,20 +186,43 @@ function ServiceFormModal({ visible, service, onClose, onSave }: ServiceFormModa
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>Category *</Text>
-            <View style={styles.categorySelector}>
-              {(['billboard', 'digital', 'transit', 'print', 'event'] as const).map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  style={[styles.categoryOption, category === cat && styles.categoryOptionActive]}
-                  onPress={() => setCategory(cat)}
-                >
-                  <Text style={[styles.categoryOptionText, category === cat && styles.categoryOptionTextActive]}>
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+              <View style={styles.categorySelector}>
+                {Object.values(SERVICE_CATEGORIES).map((cat) => (
+                  <TouchableOpacity
+                    key={cat}
+                    style={[styles.categoryOption, category === cat && styles.categoryOptionActive]}
+                    onPress={() => setCategory(cat)}
+                  >
+                    <Text style={[styles.categoryOptionText, category === cat && styles.categoryOptionTextActive]}>
+                      {cat}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
           </View>
+
+          {SERVICE_FIELDS[category] && (
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Service Details</Text>
+              <View style={styles.detailsContainer}>
+                {SERVICE_FIELDS[category].map((field) => (
+                  <View key={field.name} style={styles.detailField}>
+                    <Text style={styles.detailLabel}>{field.label}</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={details[field.name]?.toString() || ''}
+                      onChangeText={(text) => setDetails((prev) => ({ ...prev, [field.name]: text }))}
+                      placeholder={field.placeholder}
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType={field.type === 'number' ? 'numeric' : 'default'}
+                    />
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>Description *</Text>
@@ -228,48 +237,7 @@ function ServiceFormModal({ visible, service, onClose, onSave }: ServiceFormModa
             />
           </View>
 
-          <View style={styles.formRow}>
-            <View style={[styles.formGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Price (₹) *</Text>
-              <TextInput
-                style={styles.input}
-                value={price}
-                onChangeText={setPrice}
-                placeholder="0"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="numeric"
-              />
-            </View>
 
-            <View style={[styles.formGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Duration (days) *</Text>
-              <TextInput
-                style={styles.input}
-                value={duration}
-                onChangeText={setDuration}
-                placeholder="0"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Availability *</Text>
-            <View style={styles.availabilitySelector}>
-              {(['available', 'limited', 'unavailable'] as const).map((avail) => (
-                <TouchableOpacity
-                  key={avail}
-                  style={[styles.availabilityOption, availability === avail && styles.availabilityOptionActive]}
-                  onPress={() => setAvailability(avail)}
-                >
-                  <Text style={[styles.availabilityOptionText, availability === avail && styles.availabilityOptionTextActive]}>
-                    {avail}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
         </ScrollView>
 
         <View style={styles.modalFooter}>
@@ -574,5 +542,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600' as const,
     color: '#FFFFFF',
+  },
+  categoryScroll: {
+    marginHorizontal: -20,
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  detailsContainer: {
+    gap: 16,
+  },
+  detailField: {
+    gap: 8,
+  },
+  detailLabel: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    color: '#4B5563',
   },
 });

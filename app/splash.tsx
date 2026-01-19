@@ -24,18 +24,20 @@ export default function SplashScreen() {
   }, [isLoading, isAuthenticated, router]);
 
   return (
-    <LinearGradient colors={['#3B82F6', '#8B5CF6']} style={styles.container}>
+    <LinearGradient colors={['#134E4A', '#0F766E']} style={styles.container}>
       <View style={styles.content}>
         <View style={styles.logoContainer}>
           <View style={styles.iconWrapper}>
-            <TrendingUp size={64} color="#FFFFFF" strokeWidth={2.5} />
+            <TrendingUp size={64} color="#2DD4BF" strokeWidth={3} />
           </View>
-          <Text style={styles.title}>Ad-Run</Text>
+          <Text style={styles.title}>
+            ALTD<Text style={{ color: '#2DD4BF' }}>.</Text>
+          </Text>
           <Text style={styles.subtitle}>Vendor</Text>
         </View>
-        
+
         <View style={styles.footer}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
+          <ActivityIndicator size="large" color="#2DD4BF" />
           <Text style={styles.loadingText}>Loading your dashboard...</Text>
         </View>
       </View>

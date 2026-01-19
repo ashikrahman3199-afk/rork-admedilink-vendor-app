@@ -1,14 +1,35 @@
-export interface Service {
+export interface ServiceOption {
   id: string;
   name: string;
-  category: 'billboard' | 'digital' | 'transit' | 'print' | 'event';
-  description: string;
   price: number;
   duration: number;
   availability: 'available' | 'limited' | 'unavailable';
+  blockedDates?: Record<string, { selected: boolean; selectedColor: string; disabled?: boolean; disableTouchEvent?: boolean }>;
+  photos?: string[];
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  category:
+  | 'Billboards'
+  | 'LED Billboards'
+  | 'Radio'
+  | 'Cinema'
+  | 'Newspaper'
+  | 'Influencers'
+  | 'Buses'
+  | 'Cabs'
+  | 'Auto'
+  | 'Metro & Trains'
+  | 'Digital(TV)'
+  | 'Digital Marketing';
+  description: string;
   image?: string;
   rating: number;
   totalBookings: number;
+  details?: Record<string, any>;
+  options?: ServiceOption[];
 }
 
 export interface Booking {
@@ -21,6 +42,12 @@ export interface Booking {
   endDate: string;
   status: 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled';
   amount: number;
+  campaignDetails?: string;
+  campaignObjective?: string;
+  designPreference?: string;
+  clientImages?: string[];
+  progress?: number;
+  proofOfExecution?: string[];
 }
 
 export interface VendorProfile {
