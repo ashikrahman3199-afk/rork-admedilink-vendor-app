@@ -21,7 +21,10 @@ export const SERVICE_CATEGORIES = {
     METRO_TRAIN: 'Metro & Trains',
     DIGITAL_TV: 'Digital(TV)',
     DIGITAL_MARKETING: 'Digital Marketing',
+    LED_VENDING_MACHINE: 'LED Vending Machine',
+    LED_VEHICLE: 'LED Vehicle',
 } as const;
+
 
 export type ServiceCategory = typeof SERVICE_CATEGORIES[keyof typeof SERVICE_CATEGORIES];
 
@@ -100,7 +103,18 @@ export const SERVICE_FIELDS: Record<ServiceCategory, ServiceField[]> = {
         { name: 'companyName', label: 'Company Name', type: 'text', placeholder: 'e.g., Google Ads' },
         { name: 'services', label: 'Services', type: 'text', placeholder: 'e.g., SEO, SEM' },
     ],
+    [SERVICE_CATEGORIES.LED_VENDING_MACHINE]: [
+        { name: 'slotsAvailable', label: 'Slots Available', type: 'number', placeholder: 'e.g., 5' },
+        { name: 'duration', label: 'Duration', type: 'text', placeholder: 'e.g., 30 seconds' },
+        { name: 'location', label: 'Location', type: 'text', placeholder: 'e.g., Mall Entrance' },
+    ],
+    [SERVICE_CATEGORIES.LED_VEHICLE]: [
+        { name: 'slotsAvailable', label: 'Slots Available', type: 'number', placeholder: 'e.g., 10' },
+        { name: 'date', label: 'Date', type: 'text', placeholder: 'e.g., YYYY-MM-DD' },
+        { name: 'location', label: 'Location', type: 'text', placeholder: 'e.g., City Square' },
+    ],
 };
+
 
 export const SERVICE_OPTIONS: Record<ServiceCategory, string[]> = {
     [SERVICE_CATEGORIES.BILLBOARD]: ['Hoarding', 'Printing & mounting charges'],
@@ -142,4 +156,7 @@ export const SERVICE_OPTIONS: Record<ServiceCategory, string[]> = {
     ],
     [SERVICE_CATEGORIES.DIGITAL_TV]: ['Video ads'],
     [SERVICE_CATEGORIES.DIGITAL_MARKETING]: ['packages'],
+    [SERVICE_CATEGORIES.LED_VENDING_MACHINE]: ['Video ads', 'Static ads'],
+    [SERVICE_CATEGORIES.LED_VEHICLE]: ['Video ads', 'Static ads'],
 };
+
