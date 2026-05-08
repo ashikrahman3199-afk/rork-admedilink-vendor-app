@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ALTD. Vendor App",
-    "slug": "altd-vendor-app",
+    "name": "ad.agen Vendor App",
+    "slug": "ad-agen-vendor",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -11,11 +11,14 @@
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#134E4A"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.rork.admedilink-vendor-app"
+      "bundleIdentifier": "app.rork.admedilink-vendor-app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -39,6 +42,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": "https://rork.com/"
+      },
+      "eas": {
+        "projectId": "91ad171c-7272-4328-b600-d2594f9c0d55"
+      }
     }
   }
 }

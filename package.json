@@ -1,0 +1,12 @@
+{
+  "name": "rork-admedilink-vendor-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "cd expo && npx expo start",
+    "android": "cd expo && npx expo start --android",
+    "ios": "cd expo && npx expo start --ios",
+    "web": "cd expo && npx expo start --web",
+    "install": "cd expo && bun install"
+  }
+}

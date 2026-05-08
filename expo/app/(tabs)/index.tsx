@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Dimensions, TouchableOpacity, Alert } from 'react-native';
 import { TrendingUp, IndianRupee, Calendar, Star, Package } from 'lucide-react-native';
+import { useAuth } from '@/contexts/AuthContext';
 import { useVendor } from '@/contexts/VendorContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +11,7 @@ const CARD_WIDTH = (width - 48) / 2;
 
 export default function DashboardScreen() {
   const { metrics, pendingBookings, activeBookings } = useVendor();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -77,6 +79,51 @@ export default function DashboardScreen() {
         </View>
       </View>
 
+      <View style={styles.section}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Financial Breakdown</Text>
+          <TouchableOpacity
+            style={{ backgroundColor: '#115E59', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 }}
+            onPress={() => {
+              if (!user?.bankDetails) {
+                Alert.alert('Bank Details Missing', 'Please add your bank details in your Profile to withdraw funds.', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Go to Profile', onPress: () => router.navigate('/(tabs)/profile') }
+                ]);
+              } else {
+                Alert.alert('Withdraw Funds', 'Withdrawal request initiated successfully. Your net earnings will be transferred to your registered bank account.');
+              }
+            }}
+          >
+            <Text style={{ color: 'white', fontWeight: '600', fontSize: 13 }}>Withdraw</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.financialCard}>
+          <View style={styles.financialRow}>
+            <Text style={styles.financialLabel}>Gross Sales</Text>
+            <Text style={styles.financialValue}>₹{metrics.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.financialDivider} />
+          
+          <View style={styles.financialRow}>
+            <Text style={styles.financialLabelNegative}>GST (18%)</Text>
+            <Text style={styles.financialValueNegative}>-₹{(metrics.totalRevenue * 0.18).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</Text>
+          </View>
+          <View style={styles.financialRow}>
+            <Text style={styles.financialLabelNegative}>Platform Fee (10%)</Text>
+            <Text style={styles.financialValueNegative}>-₹{(metrics.totalRevenue * 0.10).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</Text>
+          </View>
+          
+          <View style={[styles.financialDivider, { borderTopWidth: 2, borderTopColor: '#E5E7EB', marginVertical: 12 }]} />
+          
+          <View style={styles.financialRow}>
+            <Text style={styles.financialLabelTotal}>Net Earnings</Text>
+            <Text style={styles.financialValueTotal}>₹{(metrics.totalRevenue * 0.72).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</Text>
+          </View>
+        </View>
+      </View>
+
       <View style={styles.alertsSection}>
         {pendingBookings > 0 && (
           <TouchableOpacity
@@ -89,9 +136,9 @@ export default function DashboardScreen() {
               <Calendar size={20} color="#FFF" />
             </View>
             <View style={styles.alertContent}>
-              <Text style={styles.alertTitle}>Pending Bookings</Text>
+              <Text style={styles.alertTitle}>Upcoming Works</Text>
               <Text style={styles.alertText}>
-                You have {pendingBookings} campaign{pendingBookings > 1 ? 's' : ''} waiting for confirmation
+                You have {pendingBookings} new order{pendingBookings > 1 ? 's' : ''} to start working on
               </Text>
             </View>
           </TouchableOpacity>
@@ -120,49 +167,61 @@ export default function DashboardScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Revenue Trend</Text>
         <View style={styles.chartCard}>
-          <View style={styles.chartContainer}>
-            {metrics.monthlyRevenue.map((data, index) => {
-              const maxRevenue = Math.max(...metrics.monthlyRevenue.map(d => d.amount));
-              const heightPercentage = (data.amount / maxRevenue) * 100;
+          {metrics.monthlyRevenue.length > 0 ? (
+            <View style={styles.chartContainer}>
+              {metrics.monthlyRevenue.map((data, index) => {
+                const maxRevenue = Math.max(...metrics.monthlyRevenue.map(d => d.amount));
+                const heightPercentage = (data.amount / maxRevenue) * 100;
 
-              return (
-                <View key={data.month} style={styles.barContainer}>
-                  <View style={styles.barWrapper}>
-                    <LinearGradient
-                      colors={['#3B82F6', '#8B5CF6']}
-                      style={[styles.bar, { height: `${heightPercentage}%` }]}
-                    />
+                return (
+                  <View key={data.month} style={styles.barContainer}>
+                    <View style={styles.barWrapper}>
+                      <LinearGradient
+                        colors={['#3B82F6', '#8B5CF6']}
+                        style={[styles.bar, { height: `${heightPercentage}%` }]}
+                      />
+                    </View>
+                    <Text style={styles.barLabel}>{data.month}</Text>
                   </View>
-                  <Text style={styles.barLabel}>{data.month}</Text>
-                </View>
-              );
-            })}
-          </View>
+                );
+              })}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No revenue data yet</Text>
+            </View>
+          )}
         </View>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Top Advertising Mediums</Text>
         <View style={styles.topServicesCard}>
-          {metrics.topServices.map((service, index) => (
-            <View key={service.serviceName} style={styles.topServiceRow}>
-              <View style={styles.topServiceRank}>
-                <Text style={styles.topServiceRankText}>#{index + 1}</Text>
+          {metrics.topServices.length > 0 ? (
+            metrics.topServices.map((service, index) => (
+              <View key={service.serviceName} style={styles.topServiceRow}>
+                <View style={styles.topServiceRank}>
+                  <Text style={styles.topServiceRankText}>#{index + 1}</Text>
+                </View>
+                <View style={styles.topServiceInfo}>
+                  <Text style={styles.topServiceName}>{service.serviceName}</Text>
+                  <Text style={styles.topServiceBookings}>{service.bookings} bookings</Text>
+                </View>
+                <View style={styles.topServiceBar}>
+                  <View
+                    style={[
+                      styles.topServiceBarFill,
+                      { width: `${(service.bookings / metrics.topServices[0].bookings) * 100}%` }
+                    ]}
+                  />
+                </View>
               </View>
-              <View style={styles.topServiceInfo}>
-                <Text style={styles.topServiceName}>{service.serviceName}</Text>
-                <Text style={styles.topServiceBookings}>{service.bookings} bookings</Text>
-              </View>
-              <View style={styles.topServiceBar}>
-                <View
-                  style={[
-                    styles.topServiceBarFill,
-                    { width: `${(service.bookings / metrics.topServices[0].bookings) * 100}%` }
-                  ]}
-                />
-              </View>
+            ))
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>No services booked yet</Text>
             </View>
-          ))}
+          )}
         </View>
       </View>
 
@@ -235,6 +294,58 @@ const styles = StyleSheet.create({
   statTrendText: {
     fontSize: 12,
     fontWeight: '600' as const,
+  },
+  financialCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  financialRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  financialLabel: {
+    fontSize: 15,
+    color: '#374151',
+    fontWeight: '500' as const,
+  },
+  financialValue: {
+    fontSize: 15,
+    color: '#111827',
+    fontWeight: '600' as const,
+  },
+  financialLabelNegative: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  financialValueNegative: {
+    fontSize: 14,
+    color: '#EF4444',
+    fontWeight: '500' as const,
+  },
+  financialDivider: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+    marginVertical: 8,
+  },
+  financialLabelTotal: {
+    fontSize: 16,
+    color: '#115E59',
+    fontWeight: '700' as const,
+  },
+  financialValueTotal: {
+    fontSize: 20,
+    color: '#0F766E',
+    fontWeight: '700' as const,
   },
   alertsSection: {
     paddingHorizontal: 20,
@@ -369,5 +480,15 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#3B82F6',
     borderRadius: 3,
+  },
+  emptyState: {
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontStyle: 'italic',
   },
 });

@@ -1,3 +1,12 @@
+import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
+import 'fast-text-encoding';
+import '../global.css';
+import structuredClone from '@ungap/structured-clone';
+
+if (typeof global.structuredClone === 'undefined') {
+  global.structuredClone = structuredClone as any;
+}
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -26,7 +35,7 @@ function RootLayoutNav() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(tabs)';
-    const inPublicGroup = segments[0] === 'splash' || segments[0] === 'login';
+    const inPublicGroup = segments[0] === 'splash' || segments[0] === 'login' || segments[0] === 'terms' || segments[0] === 'privacy';
 
     if (!isAuthenticated && !inPublicGroup) {
       // Redirect to splash if not authenticated and trying to access protected route
@@ -43,6 +52,8 @@ function RootLayoutNav() {
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="service/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="terms" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="privacy" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

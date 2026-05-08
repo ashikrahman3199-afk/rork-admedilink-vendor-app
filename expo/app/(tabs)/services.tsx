@@ -1,12 +1,13 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Modal, Alert, Platform } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Plus, Search, Edit2, Trash2, X } from 'lucide-react-native';
+import { Plus, Search, Edit2, Trash2, X, Calendar as CalendarIcon } from 'lucide-react-native';
 import { useVendor } from '@/contexts/VendorContext';
 import { Service } from '@/types/vendor';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SERVICE_CATEGORIES, SERVICE_FIELDS } from '@/constants/serviceFields';
+import { Calendar } from 'react-native-calendars';
 
 export default function ServicesScreen() {
   const { services, addService, updateService, deleteService } = useVendor();
@@ -15,6 +16,7 @@ export default function ServicesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [blockingService, setBlockingService] = useState<Service | null>(null);
 
   const filteredServices = services.filter(service =>
     service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -22,18 +24,25 @@ export default function ServicesScreen() {
   );
 
   const handleDeleteService = (service: Service) => {
-    Alert.alert(
-      'Delete Ad Medium',
-      `Are you sure you want to delete "${service.name}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => deleteService(service.id)
-        },
-      ]
-    );
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(`Are you sure you want to delete "${service.name}"?`);
+      if (confirmed) {
+        deleteService(service.id);
+      }
+    } else {
+      Alert.alert(
+        'Delete Ad Medium',
+        `Are you sure you want to delete "${service.name}"?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: () => deleteService(service.id)
+          },
+        ]
+      );
+    }
   };
 
   return (
@@ -75,11 +84,34 @@ export default function ServicesScreen() {
               <View style={styles.serviceHeader}>
                 <View style={styles.serviceHeaderLeft}>
                   <Text style={styles.serviceName}>{service.name}</Text>
-                  <View style={styles.categoryBadge}>
-                    <Text style={styles.categoryText}>{service.category}</Text>
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <View style={styles.categoryBadge}>
+                      <Text style={styles.categoryText}>{service.category}</Text>
+                    </View>
+                    {service.approvalStatus === 'PENDING' && (
+                      <View style={[styles.categoryBadge, { backgroundColor: '#FEF3C7' }]}>
+                        <Text style={[styles.categoryText, { color: '#D97706' }]}>Pending Approval</Text>
+                      </View>
+                    )}
+                    {service.approvalStatus === 'APPROVED' && (
+                      <View style={[styles.categoryBadge, { backgroundColor: '#D1FAE5' }]}>
+                        <Text style={[styles.categoryText, { color: '#10B981' }]}>Live</Text>
+                      </View>
+                    )}
+                    {service.approvalStatus === 'REJECTED' && (
+                      <View style={[styles.categoryBadge, { backgroundColor: '#FEE2E2' }]}>
+                        <Text style={[styles.categoryText, { color: '#EF4444' }]}>Rejected</Text>
+                      </View>
+                    )}
                   </View>
                 </View>
                 <View style={styles.serviceActions}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, { backgroundColor: '#E0E7FF' }]}
+                    onPress={() => setBlockingService(service)}
+                  >
+                    <CalendarIcon size={18} color="#4338CA" />
+                  </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.actionButton}
                     onPress={() => setEditingService(service)}
@@ -98,8 +130,6 @@ export default function ServicesScreen() {
               <Text style={styles.serviceDescription} numberOfLines={2}>
                 {service.description}
               </Text>
-
-
             </TouchableOpacity>
           </View>
         ))}
@@ -130,7 +160,93 @@ export default function ServicesScreen() {
           setEditingService(null);
         }}
       />
+
+      <DateBlockingModal
+        visible={blockingService !== null}
+        service={blockingService}
+        onClose={() => setBlockingService(null)}
+        onSave={(data) => {
+          if (blockingService) {
+            updateService(blockingService.id, { blockedDates: data });
+          }
+          setBlockingService(null);
+        }}
+      />
     </View>
+  );
+}
+
+interface DateBlockingModalProps {
+  visible: boolean;
+  service: Service | null;
+  onClose: () => void;
+  onSave: (blockedDates: Record<string, any>) => void;
+}
+
+function DateBlockingModal({ visible, service, onClose, onSave }: DateBlockingModalProps) {
+  const [selectedDates, setSelectedDates] = useState<Record<string, any>>(service?.blockedDates || {});
+
+  // Update effect to load service dates when modal opens
+  if (visible && service && (!selectedDates || Object.keys(selectedDates).length === 0 && service.blockedDates)) {
+    if (service.blockedDates) setSelectedDates(service.blockedDates);
+  }
+
+  const onDayPress = (day: any) => {
+    const dateString = day.dateString;
+    const newDates = { ...selectedDates };
+
+    if (newDates[dateString]) {
+      delete newDates[dateString];
+    } else {
+      newDates[dateString] = { selected: true, selectedColor: '#EF4444', marked: true };
+    }
+    setSelectedDates(newDates);
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+      <View style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <View>
+            <Text style={styles.modalTitle}>Manage Availability</Text>
+            <Text style={styles.modalSubtitle}>{service?.name}</Text>
+          </View>
+          <TouchableOpacity onPress={onClose}>
+            <X size={24} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.modalContent}>
+          <Text style={styles.label}>Select dates to block (mark as offline/busy)</Text>
+          {/* Note: Calendar would be used here. For now using a placeholder text or verify if we can import it.
+                 The user mentioned "marked in the calendar".
+                 Since I can't be 100% sure Calendar is installed correctly without verifying imports first,
+                 I will assume it is available as per package.json.
+                 I will add the import at the top in a separate edit.
+             */}
+          <View style={{ height: 350, backgroundColor: '#fff', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#E5E7EB' }}>
+            <Calendar
+              onDayPress={onDayPress}
+              markedDates={selectedDates}
+              theme={{
+                todayTextColor: '#3B82F6',
+                selectedDayBackgroundColor: '#EF4444',
+                arrowColor: '#3B82F6',
+              }}
+            />
+          </View>
+        </View>
+
+        <View style={styles.modalFooter}>
+          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.saveButton} onPress={() => onSave(selectedDates)}>
+            <Text style={styles.saveButtonText}>Save Availability</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -138,7 +254,7 @@ interface ServiceFormModalProps {
   visible: boolean;
   service: Service | null;
   onClose: () => void;
-  onSave: (data: Omit<Service, 'id' | 'rating' | 'totalBookings'>) => void;
+  onSave: (data: Omit<Service, 'id' | 'rating' | 'totalBookings' | 'vendorId'>) => void;
 }
 
 function ServiceFormModal({ visible, service, onClose, onSave }: ServiceFormModalProps) {
@@ -158,6 +274,15 @@ function ServiceFormModal({ visible, service, onClose, onSave }: ServiceFormModa
       category,
       description,
       details,
+      options: service?.options && service.options.length > 0 ? service.options : [{
+        id: Date.now().toString(),
+        name: 'Standard Option',
+        duration: 1, // mapping a standard duration
+        price: 0,    // user is expected to edit this in the options tab later or pass default
+        availability: 'available',
+        blockedDates: {},
+        photos: []
+      }],
       image: service?.image || 'https://images.unsplash.com/photo-1551677117-8b3e02c944c0?w=400',
     });
   };
@@ -428,6 +553,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700' as const,
     color: '#111827',
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 2,
   },
   modalContent: {
     flex: 1,

@@ -17,7 +17,7 @@ export default function SplashScreen() {
         } else {
           router.replace('/login');
         }
-      }, 2000);
+      }, 500);
 
       return () => clearTimeout(timer);
     }
@@ -31,7 +31,7 @@ export default function SplashScreen() {
             <TrendingUp size={64} color="#2DD4BF" strokeWidth={3} />
           </View>
           <Text style={styles.title}>
-            ALTD<Text style={{ color: '#2DD4BF' }}>.</Text>
+            ad<Text style={{ color: '#2DD4BF' }}>.</Text>agen
           </Text>
           <Text style={styles.subtitle}>Vendor</Text>
         </View>

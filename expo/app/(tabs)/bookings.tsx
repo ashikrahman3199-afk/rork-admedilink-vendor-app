@@ -118,11 +118,11 @@ export default function BookingsScreen() {
                 style={[styles.statCard, filter === 'pending' ? { backgroundColor: '#F59E0B' } : { backgroundColor: '#F3F4F6' }]}
                 onPress={() => setFilter('pending')}
               >
-                <Text style={[styles.statLabel, filter !== 'pending' && { color: '#6B7280' }]}>Pending</Text>
+                <Text style={[styles.statLabel, filter !== 'pending' && { color: '#6B7280' }]}>Upcoming</Text>
                 <Text style={[styles.statValue, filter !== 'pending' && { color: '#111827' }]}>
                   {bookings.filter(b => b.status === 'pending').length}
                 </Text>
-                <Text style={[styles.statSubtext, filter !== 'pending' && { color: '#9CA3AF' }]}>Requests</Text>
+                <Text style={[styles.statSubtext, filter !== 'pending' && { color: '#9CA3AF' }]}>Works</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -173,7 +173,7 @@ export default function BookingsScreen() {
                 <View style={styles.statusBadge}>
                   {getStatusIcon(booking.status)}
                   <Text style={[styles.statusText, { color: getStatusColor(booking.status) }]}>
-                    {booking.status}
+                    {booking.status === 'pending' ? 'Upcoming Works' : booking.status}
                   </Text>
                 </View>
               </View>
@@ -189,10 +189,6 @@ export default function BookingsScreen() {
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Client:</Text>
                 <Text style={styles.detailValue}>{booking.clientName}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Phone size={16} color="#6B7280" />
-                <Text style={styles.detailValue}>{booking.clientPhone}</Text>
               </View>
               <View style={styles.detailRow}>
                 <Clock size={16} color="#6B7280" />
@@ -244,42 +240,12 @@ export default function BookingsScreen() {
               </View>
             )}
 
-            {booking.status === 'pending' && (
-              <View style={styles.bookingActions}>
-                <TouchableOpacity
-                  style={[styles.actionBtn, styles.confirmBtn]}
-                  onPress={() => updateBookingStatus(booking.id, 'confirmed')}
-                >
-                  <CheckCircle size={18} color="#FFFFFF" />
-                  <Text style={styles.actionBtnText}>Confirm</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionBtn, styles.cancelBtn]}
-                  onPress={() => updateBookingStatus(booking.id, 'cancelled')}
-                >
-                  <XCircle size={18} color="#FFFFFF" />
-                  <Text style={styles.actionBtnText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {booking.status === 'confirmed' && (
-              <View style={styles.bookingActions}>
-                <TouchableOpacity
-                  style={[styles.actionBtn, styles.activeBtn]}
-                  onPress={() => updateBookingStatus(booking.id, 'active')}
-                >
-                  <CheckCircle size={18} color="#FFFFFF" />
-                  <Text style={styles.actionBtnText}>Start Campaign</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {booking.status === 'active' && expandedBookingId === booking.id && (
+            {/* Combined View for Pending (Upcoming), Confirmed, and Active Status controls */}
+            {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'active') && expandedBookingId === booking.id && (
               <View style={styles.activeCampaignControls}>
                 <View style={styles.divider} />
 
-                <Text style={styles.sectionLabel}>Campaign Progress: {Math.round(booking.progress || 0)}%</Text>
+                <Text style={styles.sectionLabel}>Work Progress: {Math.round(booking.progress || 0)}%</Text>
                 <Slider
                   style={{ width: '100%', height: 40 }}
                   minimumValue={0}
@@ -309,7 +275,8 @@ export default function BookingsScreen() {
               </View>
             )}
 
-            {booking.status === 'active' && (
+            {/* Allow marking pending, confirmed, and active as completed */}
+            {(booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'active') && (
               <View style={styles.bookingActions}>
                 <TouchableOpacity
                   style={[styles.actionBtn, styles.completeBtn]}

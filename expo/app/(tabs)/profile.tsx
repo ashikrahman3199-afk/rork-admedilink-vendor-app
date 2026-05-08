@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Switch, Alert, Platform } from 'react-native';
-import { useState } from 'react';
-import { Building2, Mail, Phone, MapPin, Info, CheckCircle, Bell, Settings, LogOut } from 'lucide-react-native';
+import { useState, useEffect as import_react_useEffect } from 'react';
+import { Building2, Mail, Phone, MapPin, Info, CheckCircle, Bell, Settings, LogOut, Landmark, Hash, User, ShieldCheck } from 'lucide-react-native';
 import { useVendor } from '@/contexts/VendorContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +18,35 @@ export default function ProfileScreen() {
   const [notifications, setNotifications] = useState(true);
   const [autoConfirm, setAutoConfirm] = useState(false);
 
+  // Bank Details State
+  const { user, updateBankDetails } = useAuth();
+  const [isEditingBank, setIsEditingBank] = useState(false);
+  const [isSavingBank, setIsSavingBank] = useState(false);
+  const [accountName, setAccountName] = useState(user?.bankDetails?.accountName || '');
+  const [accountNumber, setAccountNumber] = useState(user?.bankDetails?.accountNumber || '');
+  const [ifscCode, setIfscCode] = useState(user?.bankDetails?.ifscCode || '');
+  const [bankName, setBankName] = useState(user?.bankDetails?.bankName || '');
+
+  // Sync with context profile, especially when Auth user loads
+  import_react_useEffect(() => {
+    if (!isEditing) {
+      setName(profile.name);
+      setEmail(profile.email);
+      setPhone(profile.phone);
+      setAddress(profile.address);
+      setDescription(profile.description);
+    }
+  }, [profile, isEditing]);
+
+  import_react_useEffect(() => {
+    if (!isEditingBank) {
+      setAccountName(user?.bankDetails?.accountName || '');
+      setAccountNumber(user?.bankDetails?.accountNumber || '');
+      setIfscCode(user?.bankDetails?.ifscCode || '');
+      setBankName(user?.bankDetails?.bankName || '');
+    }
+  }, [user, isEditingBank]);
+
   const handleSave = () => {
     updateProfile({ name, email, phone, address, description });
     setIsEditing(false);
@@ -30,6 +59,21 @@ export default function ProfileScreen() {
     setAddress(profile.address);
     setDescription(profile.description);
     setIsEditing(false);
+  };
+
+  const handleSaveBank = async () => {
+    setIsSavingBank(true);
+    const res = await updateBankDetails({ accountName, accountNumber, ifscCode, bankName });
+    setIsSavingBank(false);
+    if (res.success) {
+      setIsEditingBank(false);
+    } else {
+      Alert.alert('Error', res.message);
+    }
+  };
+
+  const handleCancelBank = () => {
+    setIsEditingBank(false);
   };
 
   const handleLogout = () => {
@@ -80,23 +124,25 @@ export default function ProfileScreen() {
 
       <View style={styles.statsCard}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{profile.rating.toFixed(1)}</Text>
+          <Text style={styles.statValue}>{(profile.rating || 0).toFixed(1)}</Text>
           <Text style={styles.statLabel}>Rating</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{profile.totalRatings}</Text>
+          <Text style={styles.statValue}>{profile.totalRatings || 0}</Text>
           <Text style={styles.statLabel}>Reviews</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{new Date(profile.joinedDate).getFullYear()}</Text>
+          <Text style={styles.statValue}>{profile.joinedDate ? new Date(profile.joinedDate).getFullYear() : new Date().getFullYear()}</Text>
           <Text style={styles.statLabel}>Member Since</Text>
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Vendor Information</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Vendor Information</Text>
+        </View>
         <View style={styles.card}>
           <View style={styles.infoRow}>
             <Building2 size={20} color="#6B7280" />
@@ -170,7 +216,9 @@ export default function ProfileScreen() {
                   numberOfLines={2}
                 />
               ) : (
-                <Text style={styles.infoValue}>{profile.address}</Text>
+                <Text style={[styles.infoValue, !profile.address && styles.placeholderText]}>
+                  {profile.address || 'Not provided. Tap Edit to add.'}
+                </Text>
               )}
             </View>
           </View>
@@ -190,7 +238,9 @@ export default function ProfileScreen() {
                   numberOfLines={3}
                 />
               ) : (
-                <Text style={styles.infoValue}>{profile.description}</Text>
+                <Text style={[styles.infoValue, !profile.description && styles.placeholderText]}>
+                  {profile.description || 'Not provided. Tap Edit to add.'}
+                </Text>
               )}
             </View>
           </View>
@@ -198,7 +248,114 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferences</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Bank Details</Text>
+          {!isEditingBank ? (
+            <TouchableOpacity style={styles.editButtonSmall} onPress={() => setIsEditingBank(true)}>
+              <Text style={styles.editButtonTextSmall}>Edit</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.editActions}>
+              <TouchableOpacity style={styles.cancelButtonSmall} onPress={handleCancelBank}>
+                <Text style={styles.cancelButtonTextSmall}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveButtonSmall} onPress={handleSaveBank} disabled={isSavingBank}>
+                <Text style={styles.saveButtonTextSmall}>{isSavingBank ? 'Saving...' : 'Save'}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.card}>
+          <View style={styles.infoRow}>
+            <User size={20} color="#6B7280" />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Account Holder Name</Text>
+              {isEditingBank ? (
+                <TextInput
+                  style={styles.input}
+                  value={accountName}
+                  onChangeText={setAccountName}
+                  placeholder="Name on bank account"
+                  placeholderTextColor="#9CA3AF"
+                />
+              ) : (
+                <Text style={[styles.infoValue, !user?.bankDetails?.accountName && styles.placeholderText]}>
+                  {user?.bankDetails?.accountName || 'Not provided'}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Hash size={20} color="#6B7280" />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Account Number</Text>
+              {isEditingBank ? (
+                <TextInput
+                  style={styles.input}
+                  value={accountNumber}
+                  onChangeText={setAccountNumber}
+                  placeholder="Bank account number"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="number-pad"
+                  secureTextEntry={false}
+                />
+              ) : (
+                <Text style={[styles.infoValue, !user?.bankDetails?.accountNumber && styles.placeholderText]}>
+                  {user?.bankDetails?.accountNumber ? `•••• ${user.bankDetails.accountNumber.slice(-4)}` : 'Not provided'}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.infoRow}>
+            <ShieldCheck size={20} color="#6B7280" />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>IFSC Code</Text>
+              {isEditingBank ? (
+                <TextInput
+                  style={styles.input}
+                  value={ifscCode}
+                  onChangeText={setIfscCode}
+                  placeholder="IFSC Code"
+                  placeholderTextColor="#9CA3AF"
+                  autoCapitalize="characters"
+                />
+              ) : (
+                <Text style={[styles.infoValue, !user?.bankDetails?.ifscCode && styles.placeholderText]}>
+                  {user?.bankDetails?.ifscCode || 'Not provided'}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Landmark size={20} color="#6B7280" />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Bank Name</Text>
+              {isEditingBank ? (
+                <TextInput
+                  style={styles.input}
+                  value={bankName}
+                  onChangeText={setBankName}
+                  placeholder="E.g. HDFC Bank, ICICI"
+                  placeholderTextColor="#9CA3AF"
+                />
+              ) : (
+                <Text style={[styles.infoValue, !user?.bankDetails?.bankName && styles.placeholderText]}>
+                  {user?.bankDetails?.bankName || 'Not provided'}
+                </Text>
+              )}
+            </View>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Preferences</Text>
+        </View>
         <View style={styles.card}>
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
@@ -353,11 +510,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 24,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700' as const,
     color: '#111827',
-    marginBottom: 12,
+  },
+  editButtonSmall: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  editButtonTextSmall: {
+    color: '#3B82F6',
+    fontSize: 13,
+    fontWeight: '600' as const,
+  },
+  cancelButtonSmall: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  cancelButtonTextSmall: {
+    color: '#6B7280',
+    fontSize: 13,
+    fontWeight: '600' as const,
+  },
+  saveButtonSmall: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  saveButtonTextSmall: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '600' as const,
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -442,5 +637,9 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     fontSize: 16,
     fontWeight: '600' as const,
+  },
+  placeholderText: {
+    color: '#9CA3AF',
+    fontStyle: 'italic',
   },
 });

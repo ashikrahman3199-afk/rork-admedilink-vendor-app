@@ -1,0 +1,32 @@
+{
+  "cli": {
+    "version": ">= 18.5.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "env": {
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+      },
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production": {
+      "env": {
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

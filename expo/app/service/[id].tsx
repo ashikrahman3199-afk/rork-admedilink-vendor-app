@@ -1,14 +1,15 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Modal, Alert, Image as RNImage } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Modal, Alert, Image as RNImage, Platform } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useVendor } from '@/contexts/VendorContext';
 import { Service, ServiceOption } from '@/types/vendor';
-import { SERVICE_OPTIONS } from '@/constants/serviceFields';
+import { SERVICE_CATEGORIES, SERVICE_FIELDS, SERVICE_OPTIONS, ServiceCategory } from '@/constants/serviceFields';
 import { Image } from 'expo-image';
 import { Plus, ArrowLeft, Trash2, X, Upload, Pencil } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { uploadImageToS3 } from '@/lib/s3-utils';
 
 export default function ServiceDetailsScreen() {
     const { id } = useLocalSearchParams();
@@ -51,21 +52,29 @@ export default function ServiceDetailsScreen() {
     };
 
     const handleDeleteOption = (optionId: string) => {
-        Alert.alert(
-            'Delete Service Option',
-            'Are you sure you want to delete this option?',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: () => {
-                        const updatedOptions = (service.options || []).filter(o => o.id !== optionId);
-                        updateService(service.id, { options: updatedOptions });
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm('Are you sure you want to delete this option?');
+            if (confirmed) {
+                const updatedOptions = (service.options || []).filter(o => o.id !== optionId);
+                updateService(service.id, { options: updatedOptions });
+            }
+        } else {
+            Alert.alert(
+                'Delete Service Option',
+                'Are you sure you want to delete this option?',
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                        text: 'Delete',
+                        style: 'destructive',
+                        onPress: () => {
+                            const updatedOptions = (service.options || []).filter(o => o.id !== optionId);
+                            updateService(service.id, { options: updatedOptions });
+                        }
                     }
-                }
-            ]
-        );
+                ]
+            );
+        }
     };
 
     return (
@@ -161,13 +170,22 @@ export default function ServiceDetailsScreen() {
     );
 }
 
-function AddOptionModal({ visible, serviceCategory, onClose, onSave, initialData }: any) {
+interface AddOptionModalProps {
+    visible: boolean;
+    serviceCategory: ServiceCategory;
+    onClose: () => void;
+    onSave: (option: any) => void;
+    initialData?: any;
+}
+
+function AddOptionModal({ visible, serviceCategory, onClose, onSave, initialData }: AddOptionModalProps) {
     const [selectedType, setSelectedType] = useState('');
     const [price, setPrice] = useState('');
     const [duration, setDuration] = useState('');
     const [availability, setAvailability] = useState<ServiceOption['availability']>('available');
     const [blockedDates, setBlockedDates] = useState<Record<string, any>>({});
     const [photos, setPhotos] = useState<string[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
         if (initialData) {
@@ -187,7 +205,7 @@ function AddOptionModal({ visible, serviceCategory, onClose, onSave, initialData
         }
     }, [initialData, visible]);
 
-    const availableTypes = SERVICE_OPTIONS[serviceCategory] || [];
+    const availableTypes = (SERVICE_OPTIONS[serviceCategory] || []) as string[];
 
     const handlePickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -202,29 +220,45 @@ function AddOptionModal({ visible, serviceCategory, onClose, onSave, initialData
         }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!selectedType || !price || !duration) {
             Alert.alert('Error', 'Please fill all required fields');
             return;
         }
 
-        onSave({
-            id: Math.random().toString(36).substr(2, 9),
-            name: selectedType,
-            price: parseFloat(price),
-            duration: parseInt(duration),
-            availability,
-            blockedDates,
-            photos,
-        });
+        setIsUploading(true);
+        try {
+            const uploadedPhotos = await Promise.all(photos.map(async (photo) => {
+                // Determine if it's a local file that needs uploading
+                if (photo.startsWith('file://') || photo.startsWith('content://')) {
+                    return await uploadImageToS3(photo);
+                }
+                return photo;
+            }));
 
-        // Reset form
-        setSelectedType('');
-        setPrice('');
-        setDuration('');
-        setAvailability('available');
-        setBlockedDates({});
-        setPhotos([]);
+            onSave({
+                id: initialData ? initialData.id : Math.random().toString(36).substr(2, 9),
+                name: selectedType,
+                price: parseFloat(price),
+                duration: parseInt(duration),
+                availability,
+                blockedDates,
+                photos: uploadedPhotos,
+            });
+
+            // Reset form
+            setSelectedType('');
+            setPrice('');
+            setDuration('');
+            setAvailability('available');
+            setBlockedDates({});
+            setPhotos([]);
+        } catch (error) {
+            console.error("Failed to save service option:", error);
+            Alert.alert("Error", "Failed to save options. Please try again.");
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     return (
@@ -352,8 +386,14 @@ function AddOptionModal({ visible, serviceCategory, onClose, onSave, initialData
                     <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
                         <Text style={styles.cancelButtonText}>Cancel</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                        <Text style={styles.saveButtonText}>{initialData ? 'Save Changes' : 'Add Service'}</Text>
+                    <TouchableOpacity
+                        style={[styles.saveButton, isUploading && { opacity: 0.7 }]}
+                        onPress={handleSave}
+                        disabled={isUploading}
+                    >
+                        <Text style={styles.saveButtonText}>
+                            {isUploading ? 'Uploading...' : (initialData ? 'Save Changes' : 'Add Service')}
+                        </Text>
                     </TouchableOpacity>
                 </View>
             </View>

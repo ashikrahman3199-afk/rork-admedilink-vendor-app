@@ -4,12 +4,13 @@ export interface ServiceOption {
   price: number;
   duration: number;
   availability: 'available' | 'limited' | 'unavailable';
-  blockedDates?: Record<string, { selected: boolean; selectedColor: string; disabled?: boolean; disableTouchEvent?: boolean }>;
+  blockedDates?: Record<string, { marked?: boolean; dotColor?: string; disabled?: boolean; disableTouchEvent?: boolean; selected?: boolean; selectedColor?: string; textColor?: string }>;
   photos?: string[];
 }
 
 export interface Service {
   id: string;
+  vendorId: string;
   name: string;
   category:
   | 'Billboards'
@@ -23,13 +24,17 @@ export interface Service {
   | 'Auto'
   | 'Metro & Trains'
   | 'Digital(TV)'
-  | 'Digital Marketing';
+  | 'Digital Marketing'
+  | 'LED Vending Machine'
+  | 'LED Vehicle';
   description: string;
   image?: string;
   rating: number;
   totalBookings: number;
   details?: Record<string, any>;
   options?: ServiceOption[];
+  approvalStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  blockedDates?: Record<string, { marked?: boolean; dotColor?: string; disabled?: boolean; disableTouchEvent?: boolean; selected?: boolean; selectedColor?: string; textColor?: string }>;
 }
 
 export interface Booking {
